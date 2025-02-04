@@ -38,7 +38,7 @@
 Чтобы добавить ссылку в файл Readme.md, нужно использовать синтаксис Markdown. Это делают так:
 
 ```markdown
-[Текст ссылки](URL)
+[Диаграмма контекста](https://github.com/kihana/architecture-sprint-3/blob/sprint_3/diagrams/context/Context-SmartHome_Monolith_Context_Diagram.png)
 ```
 
 Замените `Текст ссылки` текстом, который хотите использовать для ссылки. Вместо `URL` вставьте адрес, на который должна вести ссылка. Например:
