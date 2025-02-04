@@ -1,0 +1,18 @@
+@startuml
+title SmartHome Monolith Context Diagram
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Person(user, "User", "A user of the SmartHome system")
+System(SmartHomeSystem, "SmartHome System", "System managing heating system and monitoring temperature sensors")
+
+System_Ext(temp_sensors, "Temperature sensors", "External temperature sensors")
+System_Ext(heating_system, "Heating System", "External heating system")
+
+Rel(user, SmartHomeSystem, "Uses the system")
+Rel(SmartHomeSystem,temp_sensors,"Gets current temperature")
+Rel(SmartHomeSystem,heating_system,"Turns on/off and sets current temperature")
+
+@enduml
