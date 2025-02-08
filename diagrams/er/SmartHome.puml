@@ -13,6 +13,11 @@ entity House {
   address : String
 }
 
+entity UserHouse {
+  *user_id : UUID
+  *house_id : UUID
+}
+
 entity EnabledFeature {
   type : ENUM(heating, temperature_sensor, lighting, gate, monitoring)
   system_id: UUID
@@ -95,7 +100,8 @@ entity MediaFiles{
     time : Timestamp
 }
 
-User ||--o{ House : "contains"
+User ||--o{ UserHouse : "contains"
+House ||--o{ UserHouse : "contains"
 House ||--o{ EnabledFeature : "contains"
 
 @enduml
