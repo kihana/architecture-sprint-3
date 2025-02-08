@@ -1,0 +1,69 @@
+@startuml
+title SmartHome Container Diagram
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Person(user, "User", "SmartHome system user")
+
+System_Boundary("SmartHome", "SmartHome System") {
+    Container(ApiGateway, "API Gateway", "Kong", "Routes user requests to services")
+
+    Container(Auth, "Authentication Manager", "OAuth2", "Validates users and generates access tokens")
+
+    Container(HeatingSystem, "Heating System", "Java", "Handles requests for heating system: turn on, turn off, set temperature. Reads temperature from sensors. Sends heating system notifications.")
+    ContainerDb(HeatingDatabase, "Heating System Storage", "PostgreSQL", "Stores heating system settings, state and changes")
+
+    Container(LightningSystem, "Lightning System", "Java", "Handles requests for lightning system: turn on, turn off. Sends lightning system notifications.")
+    ContainerDb(LightningDatabase, "Lightning System Storage", "PostgreSQL", "Stores lightning system settings, state and changes")
+
+    Container(GateSystem, "Gate System", "Java", "Handles requests for gate system: open, close. Sends gate system notifications.")
+    ContainerDb(GateDatabase, "Gate System Storage", "PostgreSQL", "Stores gate system settings, state and changes")
+
+    Container(VideoMonitoringSystem, "Video Monitoring System", "Java", "Handles requests for video monitoring system: show real time video, make photo. Sends video monitoring system notifications. Organize WebRTC stream by requests. Sends notifications when suspicious activity occurs.")
+    ContainerDb(VideoMonitoringDatabase, "Video Monitoring System Storage", "PostgreSQL", "Stores video monitoring system settings, state and changes")
+    ContainerDb(S3Storage, "Media Storage", "S3", "Stores media contents")
+
+    Container(NotificationService, "Notification Service", "Java", "Prepare notification for sending to user: system turned on/off, temperature changed")
+}
+
+System_Ext(temp_sensors, "Temperature sensors", "External temperature sensors")
+System_Ext(heating_system, "Heating System", "External heating system")
+System_Ext(ExtLightningSystem, "Lightning System", "External lightning system")
+System_Ext(ExtGateSystem, "Gate System", "External gate system")
+System_Ext(ExtVideoSystem, "Video System", "External video system")
+System_Ext(ExtNotificationService, "External Notification Service", "Sends notification to user", "Push, SMS, Email")
+
+Rel(user, ApiGateway,)
+Rel(ApiGateway, HeatingSystem, "Heating control requests")
+Rel(ApiGateway, LightningSystem, "Lightning control requests")
+Rel(ApiGateway, GateSystem, "Gate control requests")
+Rel(ApiGateway, VideoMonitoringSystem, "Video monitoring requests")
+Rel(ApiGateway, Auth, "Requests of authentication and tokens")
+
+Rel(HeatingSystem, HeatingDatabase,)
+Rel(HeatingSystem,temp_sensors,"Gets current temperature")
+Rel(HeatingSystem,heating_system,"Turns on/off and sets current temperature")
+Rel(HeatingSystem, NotificationService, "Sends heating system notification")
+
+Rel(LightningSystem, LightningDatabase,)
+Rel(LightningSystem, ExtLightningSystem, "Sends requests (turns on/off) to devices using standard protocols")
+Rel(LightningSystem, NotificationService, "Sends lightning system notification")
+
+Rel(GateSystem, GateDatabase,)
+Rel(GateSystem, ExtGateSystem, "Sends requests (open/close) to devices using standard protocols")
+Rel(GateSystem, NotificationService, "Sends gate system notification")
+
+Rel(VideoMonitoringSystem, VideoMonitoringDatabase,)
+Rel(VideoMonitoringSystem, NotificationService, "Sends video monitoring system notification")
+Rel(VideoMonitoringSystem, S3Storage,)
+Rel(VideoMonitoringSystem, ExtVideoSystem,"Gets video stream")
+Rel(VideoMonitoringSystem, user, "WebRTC")
+
+Rel(NotificationService, ExtNotificationService, "Sends notification")
+Rel(ExtNotificationService, user,)
+
+
+
+@enduml

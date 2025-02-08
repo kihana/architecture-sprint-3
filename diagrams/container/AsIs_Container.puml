@@ -1,0 +1,37 @@
+@startuml
+title SmartHome Container Diagram
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Person(user, "User", "SmartHome system user")
+
+System_Boundary("SmartHome", "SmartHome System") {
+    Container(ApiGateway, "API Gateway", "Kong", "Routes user requests to services")
+
+    Container(HeatingSystem, "Heating System", "Java", "Handles requests for heating system: turn on, turn off, set temperature. Reads temperature from sensors. Sends heating system notifications.")
+    ContainerDb(HeatingDatabase, "Heating System Storage", "PostgreSQL", "Stores heating system settings, state and changes")
+
+    Container(Auth, "Authentication Manager", "OAuth2", "Validates users and generates access tokens")
+
+    Container(NotificationService, "Notification Service", "Java", "Prepare notification for sending to user: system turned on/off, temperature changed")
+}
+
+System_Ext(temp_sensors, "Temperature sensors", "External temperature sensors")
+System_Ext(heating_system, "Heating System", "External heating system")
+System_Ext(ExtNotificationService, "External Notification Service", "Sends notification to user", "Push, SMS, Email")
+
+Rel(user, ApiGateway,)
+Rel(ApiGateway, HeatingSystem, "Heating control request")
+Rel(ApiGateway, Auth, "Authentication request and access token")
+
+Rel(HeatingSystem, HeatingDatabase,)
+Rel(HeatingSystem,temp_sensors,"Gets current temperature")
+Rel(HeatingSystem,heating_system,"Turns on/off and sets current temperature")
+Rel(HeatingSystem, NotificationService, "Sends heating system notification")
+
+Rel(NotificationService, ExtNotificationService, "Sends notification")
+Rel(ExtNotificationService, user,)
+
+@enduml

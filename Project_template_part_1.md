@@ -30,6 +30,7 @@
 - сложность при обновлении - при любом изменении необходимо обновлять все приложение целиком
 - все запросы обрабатываются синхронно - в целом негативно влияет на производительность и отзывчивость на стороне пользователя при большом количестве одновременных пользователей
 - сложно масштабировать - при нагрузке на один определенный функционал придется масштабировать все приложение целиком
+- для подключения новых датчиков и установки нужен выезд специалиста
 
 ### 5. Визуализация контекста системы — диаграмма С4
 
@@ -41,15 +42,19 @@
 
 **Диаграмма контейнеров (Containers)**
 
-Добавьте диаграмму.
+[Диаграмма контейнеров As-Is](https://github.com/kihana/architecture-sprint-3/blob/sprint_3/diagrams/container/AsIs_Container-SmartHome_Container_Diagram.png)
+
+[Диаграмма контейнеров To-Be](https://github.com/kihana/architecture-sprint-3/blob/sprint_3/diagrams/container/ToBe_Container-SmartHome_Container_Diagram.png)
 
 **Диаграмма компонентов (Components)**
 
-Добавьте диаграмму для каждого из выделенных микросервисов.
+[Диаграмма компонентов As-Is](https://github.com/kihana/architecture-sprint-3/blob/sprint_3/diagrams/component/AsIs_Components-SmartHome_Components_Diagram.png)
+
+[Диаграмма компонентов To-Be](https://github.com/kihana/architecture-sprint-3/blob/sprint_3/diagrams/component/ToBe_Components-SmartHome_Components_Diagram.png)
 
 **Диаграмма кода (Code)**
 
-Добавьте одну диаграмму или несколько.
+[Диаграмма кода](https://github.com/kihana/architecture-sprint-3/blob/sprint_3/diagrams/code/HeatingSystemCode-SmartHome_Code_Diagram.png)
 
 # Задание 3. Разработка ER-диаграммы
 
