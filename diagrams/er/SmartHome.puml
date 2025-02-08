@@ -1,0 +1,107 @@
+@startuml
+
+entity User {
+  *id : UUID
+  --
+  name : String
+  email : String
+}
+
+entity House {
+  *id : UUID
+  --
+  address : String
+}
+
+entity UserHouse {
+  *user_id : UUID
+  *house_id : UUID
+}
+
+entity EnabledFeature {
+  type : ENUM(heating, temperature_sensor, lighting, gate, monitoring)
+  system_id: UUID
+}
+
+entity HeatingSystem {
+  *id : UUID
+  --
+  name : String
+  protocol : String
+}
+
+entity TemperatureSensor {
+  *id : UUID
+  --
+  name : String
+  protocol : String
+}
+
+entity HeatingSystemJournal {
+    *id : UUID
+    house_id: UUID
+    action : String
+    time : Timestamp
+    detail : String
+}
+
+entity LightingSystem {
+  *id : UUID
+  --
+  name : String
+  protocol : String
+}
+
+
+entity LightingSystemJournal {
+    *id : UUID
+    house_id: UUID
+    action : String
+    time : Timestamp
+    detail : String
+}
+
+entity GateSystem {
+  *id : UUID
+  --
+  name : String
+  protocol : String
+}
+
+entity GateSystemJournal {
+    *id : UUID
+    house_id: UUID
+    action : String
+    time : Timestamp
+    detail : String
+}
+
+entity MonitoringSystem {
+  *id : UUID
+  --
+  name : String
+  protocol : String
+}
+
+entity MonitoringSystemJournal {
+    *id : UUID
+    house_id: UUID
+    action : String
+    time : Timestamp
+    detail : String
+}
+
+entity MediaFiles{
+    *id : UUID
+    house_id: UUID
+    file_name : String
+    s3_url : String
+    metadata : String
+    time : Timestamp
+}
+
+User ||--o{ UserHouse : "contains"
+House ||--o{ UserHouse : "contains"
+House ||--o{ EnabledFeature : "contains"
+
+@enduml

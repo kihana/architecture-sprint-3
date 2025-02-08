@@ -1,0 +1,113 @@
+@startuml
+title SmartHome Code Diagram
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+class KafkaProducer {
+  +void sendCommand(Command command)
+}
+
+class KafkaConsumer {
+  +Command getCommand()
+}
+
+Container_Boundary(HeatingSystem, "HeatingSystem") {
+
+class HeatingSystemController {
+  +HeatingSystemService service
+  +HeatingDatabaseController db_controller
+  +void postRequest(HeatingSystemService service)
+  +void getRequest(HeatingDatabaseController db_controller)
+}
+
+class HeatingSystemService {
+  +KafkaProducer producer
+  +void turnOn()
+  +void turnOff()
+  +void setTemperature(int value)
+}
+
+class HeatingCommandProcessor {
+  +KafkaConsumer consumer
+  +KafkaProducer producer
+  +list<HeatingSystem> heatingSystems
+  +void loadDevices(Database heatingSystemSettings)
+  +void turnOn(HeatingSystem heatingSystem)
+  +void turnOff(HeatingSystem heatingSystem)
+  +void setTemperature(int value, HeatingSystem heatingSystem)
+  +void notifyUpdateDatabase(Command commandResult)
+}
+
+interface HeatingSystem {
+  +void turnOn()
+  +void turnOff()
+  +void setTemperature(int value)
+}
+
+class SpecificHeatingSystem implements HeatingSystem {
+  +SpecificHeatingSystem device
+  +void turnOn()
+  +void turnOff()
+  +void setTemperature(int value)
+}
+
+interface TemperatureSensor {
+  +int getTemperature()
+}
+
+class SpecificTemperatureSensor implements TemperatureSensor {
+  +SpecificSensor sensor
+  +int getTemperature()
+}
+
+class TemperatureMonitor {
+  +KafkaProducer producer
+  +list<TemperatureSensor> sensors
+  +void loadTemperatureSensors(Database temperatureSensorSettings)
+  +int getTemperature(TemperatureSensor sensor)
+  +void updateTemperature()
+}
+
+class HeatingDatabaseController {
+  +KafkaConsumer consumer
+  +void readData()
+  +void writeData(Command commandData)
+}
+
+}
+
+HeatingSystemController "1" -- "1" HeatingSystemService : has
+HeatingSystemController "1" -- "1" HeatingDatabaseController : has
+HeatingSystemService "1" -- "1" KafkaProducer : has
+KafkaConsumer "1" -- "1" HeatingCommandProcessor : has
+HeatingCommandProcessor "1" -- "0..*" SpecificHeatingSystem : has
+HeatingCommandProcessor "1" -- "1" KafkaProducer : has
+TemperatureMonitor "1" -- "1" KafkaProducer : has
+TemperatureMonitor "1" -- "0..*" SpecificTemperatureSensor : has
+KafkaConsumer "1" -- "1" HeatingDatabaseController : has
+
+Container_Boundary(NotificationService, "Notification Service") {
+
+interface NotificationSystem {
+  +void notify()
+}
+
+class SpecificNotificationSystem implements NotificationSystem {
+  +SpecificNotificationDevice device
+  +void notify()
+}
+
+class NotificationController {
+  +KafkaConsumer consumer
+  +list<NotificationSystem> notificationSystems
+  +void sendNotification(NotificationSystem notificationSystem)
+}
+
+}
+
+KafkaConsumer "1" -- "1" NotificationController : has
+NotificationController "1" -- "0..*" SpecificNotificationSystem : has
+
+@enduml

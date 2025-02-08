@@ -1,0 +1,117 @@
+@startuml
+title SmartHome Components Diagram
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Person(user, "User", "SmartHome system user")
+
+System_Boundary("SmartHome", "SmartHome System") {
+    Container(ApiGateway, "API Gateway", "Kong", "Routes user requests to services")
+
+    Container_Boundary(Auth, "Authentication Manager") {
+        Component(AuthenticationController, "AuthenticationController", "Receives and validates requests")
+        Component(TokenGenerator, "TokenGenerator", "Generates JWT")
+    }
+
+    Container_Boundary(HeatingSystem, "Heating System") {
+        Component(HeatingController, "HeatingController", "Receives and validates requests")
+        Component(HeatingDbController, "HeatingDbController", "Reads and writes data to storage")
+        Component(HeatingLogic, "HeatingLogic", "Implements business logic")
+        Component(HeatingAdapter, "Heating Adapter", "Java", "Sends commands (turn on, turn off, set temperature) received from Kafka Bus to devices using standard protocols. Gets temperature from temperature sensors. Sends notification via Kafka Bus. Stores state to database via Kafka Bus")
+    }
+    ContainerDb(HeatingDatabase, "Heating System Storage", "PostgreSQL", "Stores heating system settings, state and changes")
+
+    Container_Boundary(LightningSystem, "Lightning System", "Java", "Handles requests for lightning system: turn on, turn off") {
+        Component(LightningController, "LightningController", "Receives and validates requests")
+        Component(LightningDbController, "LightningDbController", "Reads and writes data to storage")
+        Component(LightningLogic, "LightningLogic", "Implements business logic: turn on, turn off")
+        Component(LightningAdapter, "Lightning Adapter", "Java", "Sends commands (turn on, turn off) received from Kafka Bus to devices using standard protocols. Sends notification via Kafka Bus. Stores state to database via Kafka Bus")
+    }
+    ContainerDb(LightningDatabase, "Lightning System Storage", "PostgreSQL", "Stores lightning system settings, state and changes")
+
+    Container_Boundary(GateSystem, "Gate System", "Java", "Handles requests for gate system: open, close") {
+        Component(GateController, "GateController", "Receives and validates requests")
+        Component(GateDbController, "GateDbController", "Reads and writes data to storage")
+        Component(GateLogic, "GateLogic", "Implements business logic: open, close")
+        Component(GateAdapter, "Gate Adapter", "Java", "Sends commands (open, close) received from Kafka Bus to devices using standard protocols. Sends notification via Kafka Bus. Stores state to database via Kafka Bus")
+    }
+    ContainerDb(GateDatabase, "Gate System Storage", "PostgreSQL", "Stores gate system settings, state and changes")
+
+    Container_Boundary(VideoMonitoringSystem, "Video Monitoring System", "Java", "Handles requests for video monitoring system: show real time video, make photo and video recording") {
+        Component(VideoMonitoringController, "VideoMonitoringController", "Receives and validates requests")
+        Component(VideoMonitoringDbController, "VideoMonitoringDbController", "Reads and writes data to storage")
+        Component(VideoMonitoringLogic, "VideoMonitoringLogic", "Implements business logic: show real time video, make photo and video recording")
+        Component(MediaServiceController, "MediaServiceController", "Controls cameras. Records video. Organizes WebRTC stream. Sends notifications when suspicious activity occurs.")
+        Component(MediaServiceDbController, "MediaServiceDbController", "Reads and saves data to media storage")
+    }
+    ContainerDb(VideoMonitoringDatabase, "Video Monitoring System Storage", "PostgreSQL", "Stores video monitoring system settings, state and changes")
+    ContainerDb(S3Storage, "Media Storage", "S3", "Stores media contents")
+
+    Container_Boundary(NotificationService, "Notification Service") {
+        Component(NotificationController, "NotificationController", "Receives and validates requests")
+        Component(NotificationHandler, "NotificationHandler", "Send notification via particular channel (SMS, Email, Push)")
+    }
+
+
+    ContainerQueue(KafkaBus, "Kafka Bus", "Message Broker", "Handles async messages")
+}
+
+System_Ext(temp_sensors, "Temperature sensors", "External temperature sensors")
+System_Ext(heating_system, "Heating System", "External heating system")
+System_Ext(ExtLightningSystem, "Lightning System", "External lightning system")
+System_Ext(ExtGateSystem, "Gate System", "External gate system")
+System_Ext(ExtVideoSystem, "Video System", "External video system")
+System_Ext(ExtNotificationService, "External Notification Service", "Sends notification to user", "Push, SMS, Email")
+
+Rel(user, ApiGateway,)
+
+Rel(ApiGateway, HeatingController, "Heating control request (REST)")
+Rel(HeatingController, HeatingLogic, "Uses to perform requests")
+Rel(HeatingLogic, KafkaBus, "Send request for heating adapter")
+Rel(HeatingController, HeatingDbController, "Reads and writes settings. Reads heating system state")
+Rel(KafkaBus, HeatingDbController,)
+Rel(HeatingDbController, HeatingDatabase,)
+Rel(KafkaBus, HeatingAdapter,)
+Rel(HeatingAdapter,heating_system,"Turns on/off and sets current temperature")
+Rel(temp_sensors, HeatingAdapter,"Gets current temperature")
+
+Rel(ApiGateway, LightningController, "Lightning control requests")
+Rel(LightningController, LightningLogic, "Uses")
+Rel(LightningLogic, KafkaBus, "Send request for lightning adapter")
+Rel(LightningController, LightningDbController, "Reads and writes settings. Reads lightning system state")
+Rel(LightningDbController, LightningDatabase,)
+Rel(KafkaBus, LightningAdapter,)
+Rel(LightningAdapter, ExtLightningSystem,"Turns on/off light")
+
+Rel(ApiGateway, GateController, "Gate control requests")
+Rel(GateController, GateLogic, "Uses")
+Rel(GateLogic, KafkaBus, "Send request for gate adapter")
+Rel(GateController, GateDbController, "Reads and writes settings. Reads gate system state")
+Rel(GateDbController, GateDatabase,)
+Rel(KafkaBus, GateAdapter,)
+Rel(GateAdapter, ExtGateSystem,"Open/close")
+
+Rel(ApiGateway, VideoMonitoringController, "Video monitoring requests")
+Rel(VideoMonitoringController, VideoMonitoringLogic,)
+Rel(VideoMonitoringLogic, KafkaBus, "Send request for media service")
+Rel(VideoMonitoringController, VideoMonitoringDbController, "Reads and writes settings. Reads video monitoring system state")
+Rel(VideoMonitoringDbController, VideoMonitoringDatabase,)
+Rel(KafkaBus, MediaServiceController,)
+Rel(MediaServiceController,ExtVideoSystem, "Setup video system")
+Rel(MediaServiceController, MediaServiceDbController, "Uses")
+Rel(MediaServiceDbController, S3Storage,)
+Rel(MediaServiceController,ExtVideoSystem,"Gets video stream")
+Rel(MediaServiceController, user,"WebRTC")
+
+Rel(ApiGateway, AuthenticationController, "Requests of authentication and tokens")
+Rel(AuthenticationController, TokenGenerator, "Uses")
+
+Rel(KafkaBus, NotificationController,)
+Rel(NotificationController, NotificationHandler, "Uses")
+Rel(NotificationHandler, ExtNotificationService, "Sends notification")
+
+Rel(ExtNotificationService, user,)
+
+@enduml

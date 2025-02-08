@@ -1,0 +1,60 @@
+@startuml
+title SmartHome Components Diagram
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Person(user, "User", "SmartHome system user")
+
+System_Boundary("SmartHome", "SmartHome System") {
+    Container(ApiGateway, "API Gateway", "Kong", "Routes user requests to services")
+
+    Container_Boundary(HeatingSystem, "Heating System") {
+        Component(HeatingController, "HeatingController", "Receives and validates requests")
+        Component(HeatingDbController, "HeatingDbController", "Reads and writes data to storage")
+        Component(HeatingLogic, "HeatingLogic", "Implements business logic")
+        Component(HeatingAdapter, "Heating Adapter", "Java", "Sends commands (turn on, turn off, set temperature) received from Kafka Bus to devices using standard protocols. Gets temperature from temperature sensors. Sends notification via Kafka Bus. Stores state to database via Kafka Bus")
+    }
+    ContainerDb(HeatingDatabase, "Heating System Storage", "PostgreSQL", "Stores heating system settings, state and changes")
+
+    Container_Boundary(Auth, "Authentication Manager") {
+        Component(AuthenticationController, "AuthenticationController", "Receives and validates requests")
+        Component(TokenGenerator, "TokenGenerator", "Generates JWT")
+    }
+
+    Container_Boundary(NotificationService, "Notification Service") {
+        Component(NotificationController, "NotificationController", "Receives and validates requests")
+        Component(NotificationHandler, "NotificationHandler", "Send notification via particular channel (SMS, Email, Push)")
+    }
+
+    ContainerQueue(KafkaBus, "Kafka Bus", "Message Broker", "Handles async messages")
+}
+
+System_Ext(temp_sensors, "Temperature sensors", "External temperature sensors")
+System_Ext(heating_system, "Heating System", "External heating system")
+System_Ext(ExtNotificationService, "External Notification Service", "Sends notification to user", "Push, SMS, Email")
+
+Rel(user, ApiGateway,)
+
+Rel(ApiGateway, HeatingController, "Heating control request (REST)")
+Rel(HeatingController, HeatingLogic, "Uses to perform requests")
+Rel(HeatingLogic, KafkaBus, "Send request for heating adapter")
+Rel(HeatingController, HeatingDbController, "Reads and writes settings. Reads heating system state")
+Rel(KafkaBus, HeatingDbController,)
+Rel(HeatingDbController, HeatingDatabase,)
+Rel(KafkaBus, HeatingAdapter,)
+Rel(HeatingAdapter,heating_system,"Turns on/off and sets current temperature")
+Rel(temp_sensors, HeatingAdapter,"Gets current temperature")
+
+Rel(ApiGateway, AuthenticationController, "Requests of authentication and tokens (REST)")
+Rel(AuthenticationController, TokenGenerator, "Uses")
+
+Rel(KafkaBus, NotificationController,)
+Rel(NotificationController, NotificationHandler, "Uses")
+Rel(NotificationHandler, ExtNotificationService, "Sends notification")
+
+Rel(ExtNotificationService, user,)
+
+
+@enduml
