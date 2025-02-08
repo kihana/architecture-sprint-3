@@ -58,4 +58,4 @@
 
 # Задание 3. Разработка ER-диаграммы
 
-Добавьте сюда ER-диаграмму. Она должна отражать ключевые сущности системы, их атрибуты и тип связей между ними.
+[ER-диаграмма](https://github.com/kihana/architecture-sprint-3/blob/sprint_3/diagrams/er/SmartHome.png)
